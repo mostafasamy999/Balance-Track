@@ -1,89 +1,122 @@
+import 'package:client_ledger/presentation/main_screen/widget/add_new_account_dialog.dart';
+import 'package:client_ledger/presentation/main_screen/widget/category_page_widget.dart';
 import 'package:flutter/material.dart';
 
+import '../moc_models.dart';
+
+
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _counter = 0;
+  String _selectedCurrency = "Local";
+  final Map<int, CategorySummary> _sampleCategorySummaries = {
+    1: CategorySummary(totalAdded: 1600, totalSubtracted: 651.25, netBalance: 948.75),
+    2: CategorySummary(totalAdded: 5000, totalSubtracted: 0, netBalance: 5000),
+    3: CategorySummary(),
+  };
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final List<Category> _sampleCategories = [
+    const Category(id: 1, name: "Category A"),
+    const Category(id: 2, name: "Category B"),
+    const Category(id: 3, name: "Category C"),
+  ];
+
+  final Map<int, List<Client>> _sampleClients = {
+    1: [
+      const Client(id: 101, name: "John Doe", categoryId: 1, transactionCount: 5, finalBalance: 1250.75),
+      const Client(id: 102, name: "Alice Smith", categoryId: 1, transactionCount: 3, finalBalance: -300.50),
+    ],
+    2: [
+      const Client(id: 201, name: "Bob Johnson", categoryId: 2, transactionCount: 8, finalBalance: 5000.00),
+    ],
+    3: [],
+  };
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+    final categories = _sampleCategories;
+
+    return DefaultTabController(
+      length: categories.length,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () { /* TODO: Implement drawer or menu action */ },
+          ),
+          title: const Text("Clients"),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {  },
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            IconButton(
+              icon: const Icon(Icons.description_outlined), // Or Icons.picture_as_pdf
+              onPressed: () {   },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Center(
+                child: TextButton(
+                  onPressed: () {
+                  },
+                  child: Text("Currency: $_selectedCurrency", style: TextStyle(color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white)),
+                ),
+              ),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {},
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'option1',
+                  child: Text('Option 1'),
+                ),
+              ],
             ),
           ],
         ),
+        body: Column(
+          children: <Widget>[
+            TabBar(
+              isScrollable: categories.length > 3, // Example condition
+              tabs: categories.map((Category category) => Tab(text: category.name)).toList(),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: categories.map((Category category) {
+                  // Fetch clients and summary for this category
+                  // In a real app, this would be managed by state (BLoC/Cubit)
+                  final clientsForCategory = _sampleClients[category.id] ?? [];
+                  final categorySummary = _sampleCategorySummaries[category.id] ?? CategorySummary();
+                  return CategoryPageView(
+                    category: category,
+                    clients: clientsForCategory,
+                    summary: categorySummary,
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) => const AddNewAccountDialog(),
+            );
+          },
+          backgroundColor: Colors.blue, // Use Theme.of(context).primaryColor or specific blue
+          child: const Icon(Icons.add),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+
+
+

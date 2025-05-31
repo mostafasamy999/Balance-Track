@@ -47,7 +47,7 @@ class _MainScreenState extends State<MainScreen> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.menu),
-            onPressed: () { /* TODO: Implement drawer or menu action */ },
+            onPressed: () { },
           ),
           title: const Text("Clients"),
           actions: <Widget>[

@@ -5,7 +5,7 @@ import '../../moc_models.dart';
 
 
 class ClientListItem extends StatelessWidget {
-  final Client client;
+  final ClientUi client;
 
   const ClientListItem({super.key, required this.client});
 

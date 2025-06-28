@@ -48,14 +48,14 @@ class Transaction extends Equatable {
   double get value => isAddition ? amount : -amount;
 }
 
-class Client extends Equatable {
+class ClientUi extends Equatable {
   final int? id;
   final String name;
   final int categoryId;
   final int transactionCount; // Added for display
   final double finalBalance; // Added for display
 
-  const Client({
+  const ClientUi({
     this.id,
     required this.name,
     required this.categoryId,
@@ -67,11 +67,11 @@ class Client extends Equatable {
   List<Object?> get props => [id, name, categoryId, transactionCount, finalBalance];
 }
 
-class Category extends Equatable {
+class CategoryUi extends Equatable {
   final int? id;
   final String name;
 
-  const Category({
+  const CategoryUi({
     this.id,
     required this.name,
   }) : super(const []);

@@ -28,14 +28,25 @@ class ClientRepositoryImpl implements ClientRepository {
 
   @override
   Future<Either<Failure, Category>> addCategory(Category category) async {
+    print('🔵 [Repository] addCategory called with: ${category.name}');
+
     try {
       final categoryModel = CategoryModel.fromEntity(category);
+      print('🟡 [Repository] Converted to CategoryModel: ${categoryModel.toJson()}');
+
       final result = await localDataSource.addCategory(categoryModel);
+      print('🟢 [Repository] Category added successfully: ${result.name}');
+
       return Right(result);
     } on DatabaseException catch (e) {
+      print('🔴 [Repository] DatabaseException: ${e.message}');
       return Left(DatabaseFailure(e.message));
+    } catch (e) {
+      print('❌ [Repository] Unexpected error: $e');
+      return Left(DatabaseFailure('Unexpected error occurred'));
     }
   }
+
 
   // Clients
   @override
@@ -47,17 +58,27 @@ class ClientRepositoryImpl implements ClientRepository {
       return Left(DatabaseFailure(e.message));
     }
   }
-
   @override
   Future<Either<Failure, Client>> addClient(Client client) async {
     try {
+      print('🔵 [Repository] Adding client: $client');
+
       final clientModel = ClientModel.fromEntity(client);
+      print('🔵 [Repository] Converted to ClientModel: $clientModel');
+
       final result = await localDataSource.addClient(clientModel);
+      print('🔵 [Repository] Client successfully added: $result');
+
       return Right(result);
     } on DatabaseException catch (e) {
+      print('🔵 [Repository] DatabaseException caught: ${e.message}');
       return Left(DatabaseFailure(e.message));
+    } catch (e) {
+      print('🔵 [Repository] Unexpected error: $e');
+      return Left(DatabaseFailure('Unexpected error occurred'));
     }
   }
+
 
   // Transactions
   @override

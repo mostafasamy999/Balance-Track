@@ -6,7 +6,7 @@ import 'injection.dart';
 
 void registerRepositories() {
   // Repositories
-  sl.registerLazySingleton<ClientRepository>(
-        () => ClientRepositoryImpl(localDataSource: sl()),
+  injector.registerLazySingleton<ClientRepository>(
+        () => ClientRepositoryImpl(localDataSource: injector()),
   );
 }

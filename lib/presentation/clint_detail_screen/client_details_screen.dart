@@ -8,7 +8,7 @@ import '../moc_models.dart';
 
 // client_details_screen
 class ClientDetailsScreen extends StatelessWidget {
-  final Client client;
+  final ClientUi client;
 
   ClientDetailsScreen({super.key, required this.client});
 

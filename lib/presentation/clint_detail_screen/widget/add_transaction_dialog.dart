@@ -4,7 +4,7 @@ import '../../moc_models.dart';
 
 // add_transaction_dialog
 class AddTransactionDialog extends StatefulWidget {
-  final Client client; // Client for whom the transaction is being added
+  final ClientUi client; // Client for whom the transaction is being added
 
   const AddTransactionDialog({super.key, required this.client});
 

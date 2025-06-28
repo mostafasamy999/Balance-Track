@@ -7,8 +7,8 @@ import 'client_list_item.dart';
 
 
 class CategoryPageView extends StatelessWidget {
-  final Category category;
-  final List<Client> clients;
+  final CategoryUi category;
+  final List<ClientUi> clients;
   final CategorySummary summary;
 
   const CategoryPageView({

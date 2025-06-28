@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../di/injection.dart';
+import 'bloc/main_screen_cubit/main_screen_cubit.dart';
 import 'main_screen/main_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -18,16 +21,15 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: 'Roboto', // Example font
       ),
-      home: const MainScreen(),
+      home: BlocProvider(
+        create: (_) => MainScreenCubit(
+            addCategoryUseCase: injector(),
+            getCategoriesUseCase: injector(),
+            addClientUseCase: injector(),
+        getClientsByCategoryUseCase: injector()),
+        child: const MainScreen(),
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
 }
-
-
-
-
-
-
-
-

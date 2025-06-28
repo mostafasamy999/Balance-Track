@@ -15,8 +15,8 @@ class CategorySummaryFooter extends StatelessWidget {
       color: Colors.grey[200],
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+        child: Wrap(
+          // mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             _buildSummaryColumn("Debit", summary.totalSubtracted.toStringAsFixed(2), summary.currencySymbol),
             _buildSummaryColumn("Credit", summary.totalAdded.toStringAsFixed(2), summary.currencySymbol),

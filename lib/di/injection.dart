@@ -4,11 +4,11 @@ import 'repositories_di.dart';
 import 'usecases_di.dart';
 import '../data/datasources/local/app_database.dart';
 
-final sl = GetIt.instance;
+final injector = GetIt.instance;
 
 Future<void> init() async {
   // Database
-  sl.registerSingleton<AppDatabase>(AppDatabase());
+  injector.registerSingleton<AppDatabase>(AppDatabase());
 
   // Register all dependencies
   registerDataSources();

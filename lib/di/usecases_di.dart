@@ -10,10 +10,10 @@ import 'injection.dart';
 
 void registerUseCases() {
   // Use cases
-  sl.registerLazySingleton(() => GetCategories(sl()));
-  sl.registerLazySingleton(() => AddCategory(sl()));
-  sl.registerLazySingleton(() => GetClientsByCategory(sl()));
-  sl.registerLazySingleton(() => AddClient(sl()));
-  sl.registerLazySingleton(() => GetTransactionsByClient(sl()));
-  sl.registerLazySingleton(() => AddTransaction(sl()));
+  injector.registerLazySingleton(() => GetCategories(injector()));
+  injector.registerLazySingleton(() => AddCategory(injector()));
+  injector.registerLazySingleton(() => GetClientsByCategory(injector()));
+  injector.registerLazySingleton(() => AddClient(injector()));
+  injector.registerLazySingleton(() => GetTransactionsByClient(injector()));
+  injector.registerLazySingleton(() => AddTransaction(injector()));
 }

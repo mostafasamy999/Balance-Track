@@ -2,8 +2,11 @@
 // add_new_account_dialog
 import 'package:flutter/material.dart';
 
+import '../../bloc/main_screen_cubit/main_screen_cubit.dart';
+import '../../moc_models.dart';
 class AddNewAccountDialog extends StatefulWidget {
-  const AddNewAccountDialog({super.key});
+  Function(ClientUi) onTap;
+  AddNewAccountDialog({super.key,required this.onTap});
 
   @override
   State<AddNewAccountDialog> createState() => _AddNewAccountDialogState();
@@ -90,36 +93,36 @@ class _AddNewAccountDialogState extends State<AddNewAccountDialog> {
                 onSaved: (value) => _phoneNumber = value ?? '',
               ),
               const SizedBox(height: 15),
-              const Text("Initial Balance Type:", style: TextStyle(fontSize: 16)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    child: RadioListTile<bool>(
-                      title: const Text("Credit"),
-                      value: true,
-                      groupValue: _isInitialBalanceAddition,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _isInitialBalanceAddition = value!;
-                        });
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: RadioListTile<bool>(
-                      title: const Text("Debit"),
-                      value: false,
-                      groupValue: _isInitialBalanceAddition,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _isInitialBalanceAddition = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              // const Text("Initial Balance Type:", style: TextStyle(fontSize: 16)),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   children: <Widget>[
+              //     Expanded(
+              //       child: RadioListTile<bool>(
+              //         title: const Text("Credit"),
+              //         value: true,
+              //         groupValue: _isInitialBalanceAddition,
+              //         onChanged: (bool? value) {
+              //           setState(() {
+              //             _isInitialBalanceAddition = value!;
+              //           });
+              //         },
+              //       ),
+              //     ),
+              //     Expanded(
+              //       child: RadioListTile<bool>(
+              //         title: const Text("Debit"),
+              //         value: false,
+              //         groupValue: _isInitialBalanceAddition,
+              //         onChanged: (bool? value) {
+              //           setState(() {
+              //             _isInitialBalanceAddition = value!;
+              //           });
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),
@@ -131,14 +134,24 @@ class _AddNewAccountDialogState extends State<AddNewAccountDialog> {
         ),
         ElevatedButton(
           child: const Text("Save"),
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              _formKey.currentState!.save();
-              // TODO: Implement save logic (e.g., call BLoC/Cubit event)
-              // print("New Account: $_accountName, Amount: $_initialAmount, Credit: $_isInitialBalanceAddition, Date: $_selectedDate, Phone: $_phoneNumber");
-              Navigator.of(context).pop();
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+
+                // Create the client object
+                final newClient = ClientUi(
+                  id: 0, // Assuming the backend or DB will assign an ID
+                  name: _accountName,
+                  categoryId: 0, // You'll want to pass categoryId into the dialog later
+                  transactionCount: 1, // Because initial balance = 1 transaction
+                  finalBalance: _isInitialBalanceAddition ? _initialAmount : -_initialAmount,
+                );
+
+                widget.onTap(newClient); // Send client back to caller
+                Navigator.of(context).pop();
+              }
             }
-          },
+
         ),
       ],
     );

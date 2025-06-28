@@ -6,7 +6,7 @@ import 'injection.dart';
 
 void registerDataSources() {
   // Data sources
-  sl.registerLazySingleton<ClientLocalDataSource>(
-        () => ClientLocalDataSourceImpl(database: sl()),
+  injector.registerLazySingleton<ClientLocalDataSource>(
+        () => ClientLocalDataSourceImpl(database: injector()),
   );
 }

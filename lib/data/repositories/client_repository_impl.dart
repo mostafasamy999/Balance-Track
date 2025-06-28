@@ -51,11 +51,21 @@ class ClientRepositoryImpl implements ClientRepository {
   // Clients
   @override
   Future<Either<Failure, List<Client>>> getClientsByCategory(int categoryId) async {
+    print('🔵 [Repository] getClientsByCategory called with categoryId: $categoryId');
+
     try {
       final clients = await localDataSource.getClientsByCategory(categoryId);
+      print('🟢 [Repository] Retrieved ${clients.length} client(s):');
+      for (var client in clients) {
+        print('  🔹 Client: ${client.name}, ID: ${client.id}, CategoryID: ${client.categoryId}');
+      }
       return Right(clients);
     } on DatabaseException catch (e) {
+      print('🔴 [Repository] DatabaseException: ${e.message}');
       return Left(DatabaseFailure(e.message));
+    } catch (e) {
+      print('❌ [Repository] Unexpected error: $e');
+      return Left(DatabaseFailure('Unexpected error occurred'));
     }
   }
   @override

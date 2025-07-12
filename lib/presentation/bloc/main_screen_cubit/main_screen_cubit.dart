@@ -17,7 +17,7 @@ part 'main_screen_state.dart';
 class MainScreenCubit extends Cubit<MainScreenState> {
   final AddCategory addCategoryUseCase;
   final GetCategories getCategoriesUseCase;
-  final AddClient addClientUseCase;
+  final AddClientUseCase addClientUseCase;
   final GetClientsByCategory getClientsByCategoryUseCase;
 
   List<Category> _categories = [];

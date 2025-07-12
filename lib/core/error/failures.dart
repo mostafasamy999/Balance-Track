@@ -1,3 +1,4 @@
+// core/error/failures.dart
 import 'package:equatable/equatable.dart';
 
 abstract class Failure extends Equatable {
@@ -18,6 +19,25 @@ class DatabaseFailure extends Failure {
   const DatabaseFailure(this.message) : super(const []);
 
   // Override props to directly include the message
+  @override
+  List<Object?> get props => [message];
+}
+
+// You can add more failure types if needed
+class NetworkFailure extends Failure {
+  final String message;
+
+  const NetworkFailure(this.message) : super(const []);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ValidationFailure extends Failure {
+  final String message;
+
+  const ValidationFailure(this.message) : super(const []);
+
   @override
   List<Object?> get props => [message];
 }

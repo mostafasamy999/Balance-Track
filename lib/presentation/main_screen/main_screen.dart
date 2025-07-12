@@ -3,6 +3,8 @@ import 'package:client_ledger/presentation/main_screen/widget/category_page_widg
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../di/injection.dart';
+import '../bloc/add_client/add_client_cubit.dart';
 import '../bloc/main_screen_cubit/main_screen_cubit.dart';
 import '../moc_models.dart';
 import '../../../domain/entities/category.dart';
@@ -18,8 +20,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   TabController? _tabController;
   Map<int, List<ClientUi>> _clientsByCategory = {};
   Map<int, CategorySummary> _sampleCategorySummaries =
-      {}; // Keep this mock if summaries not dynamic
-  int _selectedCategotyId = 1;
+      {};
+  int _selectedCategoryId = 1;
 
   @override
   void initState() {
@@ -61,9 +63,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         } else if (state is MainScreenClientsLoaded) {
           _clientsByCategory[_getCurrentCategoryId() ?? 0] = state.clients;
           if (state.clients.isEmpty)
-            _selectedCategotyId = 1;
+            _selectedCategoryId = 1;
           else
-            _selectedCategotyId = state.clients.first.categoryId;
+            _selectedCategoryId = state.clients.first.categoryId;
         }
       },
       builder: (context, state) {
@@ -140,10 +142,15 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
             floatingActionButton: FloatingActionButton(
               onPressed: () => showDialog(
                 context: context,
-                builder: (_) => AddNewAccountDialog(
-                  onTap: (client) => _insertClient(client),
-                  selectedCategoryId: _selectedCategotyId,
-                ),
+                builder: (context) {
+                  return BlocProvider<AddClientCubit>(
+                    create: (_) => AddClientCubit(addClientUseCase: injector()),
+                    child: AddNewAccountDialog(
+                      onTap: (client) => _insertClient(client),
+                      selectedCategoryId: _selectedCategoryId,
+                    ),
+                  );
+                },
               ),
               backgroundColor: Colors.blue,
               child: const Icon(Icons.add),

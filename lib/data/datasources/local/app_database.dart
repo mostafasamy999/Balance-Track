@@ -67,6 +67,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<Client> addClient(ClientsCompanion entry) {
+  print('🔵 [Database] addClient called with: ${entry}');
     return into(clients).insertReturning(entry);
   }
 

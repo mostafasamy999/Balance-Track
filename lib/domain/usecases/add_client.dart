@@ -5,10 +5,10 @@ import '../../core/usecases/usecase.dart';
 import '../entities/client.dart';
 import '../repositories/client_repository.dart';
 
-class AddClient implements UseCase<Client, AddClientParams> {
+class AddClientUseCase implements UseCase<Client, AddClientParams> {
   final ClientRepository repository;
 
-  AddClient(this.repository);
+  AddClientUseCase(this.repository);
 
   @override
   Future<Either<Failure, Client>> call(AddClientParams params) async {

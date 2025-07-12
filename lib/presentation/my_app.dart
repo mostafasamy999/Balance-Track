@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../di/injection.dart';
+import '../domain/usecases/add_client.dart';
+import 'bloc/add_client/add_client_cubit.dart';
 import 'bloc/main_screen_cubit/main_screen_cubit.dart';
 import 'main_screen/main_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,12 +23,22 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: 'Roboto', // Example font
       ),
-      home: BlocProvider(
-        create: (_) => MainScreenCubit(
-            addCategoryUseCase: injector(),
-            getCategoriesUseCase: injector(),
-            addClientUseCase: injector(),
-        getClientsByCategoryUseCase: injector()),
+      home:MultiBlocProvider(
+        providers: [
+          BlocProvider<MainScreenCubit>(
+            create: (_) => MainScreenCubit(
+              addCategoryUseCase: injector(),
+              getCategoriesUseCase: injector(),
+              addClientUseCase: injector(),
+              getClientsByCategoryUseCase: injector(),
+            ),
+          ),
+          BlocProvider<AddClientCubit>(
+            create: (_) => AddClientCubit(
+              addClientUseCase: injector(),
+            ),
+          ),
+        ],
         child: const MainScreen(),
       ),
       debugShowCheckedModeBanner: false,

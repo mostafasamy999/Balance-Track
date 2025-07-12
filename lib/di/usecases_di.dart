@@ -13,7 +13,7 @@ void registerUseCases() {
   injector.registerLazySingleton(() => GetCategories(injector()));
   injector.registerLazySingleton(() => AddCategory(injector()));
   injector.registerLazySingleton(() => GetClientsByCategory(injector()));
-  injector.registerLazySingleton(() => AddClient(injector()));
+  injector.registerLazySingleton(() => AddClientUseCase(injector()));
   injector.registerLazySingleton(() => GetTransactionsByClient(injector()));
   injector.registerLazySingleton(() => AddTransaction(injector()));
 }

@@ -197,9 +197,13 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       ),
     );
   }
-
+  // In MainScreen class
   void _insertClient(ClientUi newClient) {
-    context.read<MainScreenCubit>().addClient(newClient);
+    // REMOVE THIS LINE:
+    // context.read<MainScreenCubit>().addClient(newClient);
+
+    // Only refresh the category
+    context.read<MainScreenCubit>().getClientsByCategory(newClient.categoryId);
   }
 
   int? _getCurrentCategoryId() {

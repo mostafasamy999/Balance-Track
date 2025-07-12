@@ -12,6 +12,7 @@ class AddClientUseCase implements UseCase<Client, AddClientParams> {
 
   @override
   Future<Either<Failure, Client>> call(AddClientParams params) async {
+    print ('mosmos usecase: ');
     return await repository.addClient(params.client);
   }
 }

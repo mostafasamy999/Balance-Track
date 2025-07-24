@@ -1,9 +1,9 @@
 // add_new_account_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/add_client/add_client_cubit.dart';
+import '../../../bloc/add_client/add_client_cubit.dart';
 
-import '../../moc_models.dart';
+import '../../../moc_models.dart';
 
 class AddNewAccountDialog extends StatefulWidget {
   Function(ClientUi) onTap;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../moc_models.dart';
+import '../../../moc_models.dart';
 
 
 class CategorySummaryFooter extends StatelessWidget {

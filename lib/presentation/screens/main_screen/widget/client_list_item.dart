@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../di/injection.dart';
+import '../../../bloc/detail_cubit/detail_cubit.dart';
 import '../../clint_detail_screen/client_details_screen.dart';
-import '../../moc_models.dart';
+import '../../../moc_models.dart';
 
 
 class ClientListItem extends StatelessWidget {
@@ -15,10 +18,16 @@ class ClientListItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: InkWell(
         onTap: () {
+          // Example of navigating from your MainScreen
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ClientDetailsScreen(client: client),
+              builder: (_) => BlocProvider<DetailCubit>(
+                create: (_) => DetailCubit(
+                  getTransactionsByClientUseCase: injector(),
+                ),
+                child: ClientDetailsScreen(client: client),
+              ),
             ),
           );
         },

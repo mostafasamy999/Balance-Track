@@ -1,4 +1,7 @@
 
+import '../domain/entities/transaction.dart';
+import 'package:intl/intl.dart';
+
 class Equatable {
   final List<Object?> props;
   const Equatable(this.props);
@@ -23,7 +26,7 @@ class Equatable {
   }
 }
 
-class Transaction extends Equatable {
+class TransactionUi extends Equatable {
   final int? id;
   final int clientId;
   final double amount;
@@ -32,7 +35,7 @@ class Transaction extends Equatable {
   final DateTime dateTime;
   final double balanceAfterTransaction; // Added for display in transaction list
 
-  const Transaction({
+  const TransactionUi({
     this.id,
     required this.clientId,
     required this.amount,
@@ -47,6 +50,24 @@ class Transaction extends Equatable {
 
   double get value => isAddition ? amount : -amount;
 }
+
+
+extension TransactionMapper on Transaction {
+  TransactionUi toUi({double balanceAfterTransaction = 0.0}) {
+    return TransactionUi(
+      id: id,
+      clientId: clientId,
+      amount: amount,
+      isAddition: isAddition,
+      details: details,
+      dateTime: dateTime,
+      balanceAfterTransaction: balanceAfterTransaction,
+    );
+  }
+}
+
+
+
 
 class ClientUi extends Equatable {
   final int? id;

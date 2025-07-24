@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../moc_models.dart';
+import '../../../moc_models.dart';
 
 // client_summary_footer
 class ClientSummaryFooter extends StatelessWidget {

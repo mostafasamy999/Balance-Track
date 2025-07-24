@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:client_ledger/domain/usecases/get_transactions_by_client.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
@@ -6,6 +7,7 @@ import '../../../domain/entities/category.dart';
 import '../../../domain/entities/client.dart';
 import '../../../domain/usecases/add_category.dart';
 import '../../../domain/usecases/add_client.dart';
+import '../../../domain/usecases/clear_all_data_use_case.dart';
 import '../../../domain/usecases/get_categories.dart';
 import '../../../core/usecases/usecase.dart';
 import '../../../core/error/failures.dart';
@@ -19,6 +21,7 @@ class MainScreenCubit extends Cubit<MainScreenState> {
   final GetCategories getCategoriesUseCase;
   final AddClientUseCase addClientUseCase;
   final GetClientsByCategory getClientsByCategoryUseCase;
+  final DeleteAllDataUseCase deleteAllDataUseCase;
 
   List<Category> _categories = [];
   List<Category> get categories => _categories;
@@ -28,6 +31,7 @@ class MainScreenCubit extends Cubit<MainScreenState> {
     required this.getCategoriesUseCase,
     required this.addClientUseCase,
     required this.getClientsByCategoryUseCase,
+    required this.deleteAllDataUseCase,
   }) : super(MainScreenInitial());
 
   Future<void> loadCategories() async {
@@ -94,6 +98,13 @@ class MainScreenCubit extends Cubit<MainScreenState> {
         emit(MainScreenClientsLoaded(clients: uiClients));
       },
     );
+  }
+
+  Future<void> deleteAllData() async {
+    emit(MainScreenLoading());
+
+    await deleteAllDataUseCase();
+    await loadCategories();
   }
 
 }

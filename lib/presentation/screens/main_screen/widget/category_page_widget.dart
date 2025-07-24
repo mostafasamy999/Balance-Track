@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../moc_models.dart';
+import '../../../moc_models.dart';
 import 'category_summary_footer.dart';
 import 'client_list_item.dart';
 

@@ -21,6 +21,10 @@ abstract class ClientLocalDataSource {
   // Summary data
   Future<double> getClientBalance(int clientId);
   Future<Map<String, double>> getCategoryTotals(int categoryId);
+
+
+  // New method to delete all data
+  Future<void> clearAllData();
 }
 
 class ClientLocalDataSourceImpl implements ClientLocalDataSource {
@@ -152,6 +156,16 @@ class ClientLocalDataSourceImpl implements ClientLocalDataSource {
       return await database.getCategoryTotals(categoryId);
     } catch (e) {
       throw DatabaseException('Failed to get category totals: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> clearAllData() async {
+    try {
+      // Assuming you will create a `deleteAllData` method in your AppDatabase class
+      await database.clearAllData();
+    } catch (e) {
+      throw DatabaseException('Failed to delete all data: ${e.toString()}');
     }
   }
 }

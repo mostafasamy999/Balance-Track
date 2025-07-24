@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../di/injection.dart';
-import '../domain/usecases/add_client.dart';
 import 'bloc/add_client/add_client_cubit.dart';
 import 'bloc/main_screen_cubit/main_screen_cubit.dart';
-import 'main_screen/main_screen.dart';
+import '../presentation/screens/main_screen/main_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MyApp extends StatelessWidget {
@@ -31,6 +30,7 @@ class MyApp extends StatelessWidget {
               getCategoriesUseCase: injector(),
               addClientUseCase: injector(),
               getClientsByCategoryUseCase: injector(),
+              deleteAllDataUseCase: injector(),
             ),
           ),
           BlocProvider<AddClientCubit>(

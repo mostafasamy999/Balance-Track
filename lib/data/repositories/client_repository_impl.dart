@@ -132,4 +132,9 @@ class ClientRepositoryImpl implements ClientRepository {
       return Left(DatabaseFailure(e.message));
     }
   }
+  @override
+  Future<void> clearAllData(){
+    return localDataSource.clearAllData();
+  }
+
 }

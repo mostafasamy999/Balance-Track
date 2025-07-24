@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../moc_models.dart';
+import '../../../moc_models.dart';
 
 // transaction_list_item
 class TransactionListItem extends StatelessWidget {
-  final Transaction transaction;
+  final TransactionUi transaction;
 
   const TransactionListItem({super.key, required this.transaction});
 

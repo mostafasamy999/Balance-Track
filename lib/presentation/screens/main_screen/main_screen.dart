@@ -1,12 +1,12 @@
-import 'package:client_ledger/presentation/main_screen/widget/add_new_account_dialog.dart';
-import 'package:client_ledger/presentation/main_screen/widget/category_page_widget.dart';
+import 'package:client_ledger/presentation/screens/main_screen/widget/add_new_account_dialog.dart';
+import 'package:client_ledger/presentation/screens/main_screen/widget/category_page_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../di/injection.dart';
-import '../bloc/add_client/add_client_cubit.dart';
-import '../bloc/main_screen_cubit/main_screen_cubit.dart';
-import '../moc_models.dart';
+import '../../../di/injection.dart';
+import '../../bloc/add_client/add_client_cubit.dart';
+import '../../bloc/main_screen_cubit/main_screen_cubit.dart';
+import '../../moc_models.dart';
 import '../../../domain/entities/category.dart';
 
 class MainScreen extends StatefulWidget {
@@ -108,6 +108,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   }),
                 ),
                 IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _showDeleteAllDialog(context, () {
+                    context.read<MainScreenCubit>().deleteAllData();
+                  }),
+                ),
+                IconButton(
                   icon: const Icon(Icons.refresh),
                   onPressed: () =>
                       context.read<MainScreenCubit>().loadCategories(),
@@ -192,6 +198,30 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               Navigator.of(ctx).pop();
             },
             child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+  void _showDeleteAllDialog(
+      BuildContext context, Function() onTap) {
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete All'),
+        content: Text(
+            'You sure to delete all data'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+                onTap();
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Delete'),
           ),
         ],
       ),

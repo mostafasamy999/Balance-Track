@@ -20,4 +20,7 @@ abstract class ClientRepository {
   // Summary data
   Future<Either<Failure, double>> getClientBalance(int clientId);
   Future<Either<Failure, Map<String, double>>> getCategoryTotals(int categoryId);
+
+
+  Future<void> clearAllData();
 }

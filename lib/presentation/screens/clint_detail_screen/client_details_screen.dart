@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/detail_cubit/detail_cubit.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
-  final ClientUi client; // Use the entity directly
+  final ClientUi client;
 
   const ClientDetailsScreen({super.key, required this.client});
 
@@ -19,9 +19,43 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Use `context.read` to call a function on the cubit once
-    // You will need to add this `loadClientDetails` method to your cubit
-    context.read<DetailCubit>().loadClientDetails(widget.client.id!);
+    print('🔵 [ClientDetailsScreen] Initializing for client: ${widget.client.name} (ID: ${widget.client.id})');
+
+    // Check if client ID is not null before loading details
+    if (widget.client.id != null) {
+      print('🔵 [ClientDetailsScreen] Loading client details for ID: ${widget.client.id}');
+      context.read<DetailCubit>().loadClientDetails(widget.client.id!);
+    } else {
+      print('🔴 [ClientDetailsScreen] Client ID is null, cannot load details');
+    }
+  }
+
+  void _showAddTransactionDialog() {
+    print('🔵 [ClientDetailsScreen] Showing add transaction dialog');
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent accidental dismissal
+      builder: (BuildContext dialogContext) {
+        print('🟡 [ClientDetailsScreen] Dialog context created, providing BlocProvider');
+
+        // Provide the existing cubit to the dialog
+        return BlocProvider<DetailCubit>.value(
+          value: context.read<DetailCubit>(),
+          child: AddTransactionDialog(
+            client: widget.client,
+            onTap: () {
+              print('🟡 [ClientDetailsScreen] Transaction dialog onTap called');
+              // Refresh data after adding transaction
+              if (widget.client.id != null) {
+                print('🔵 [ClientDetailsScreen] Refreshing client details after transaction');
+                context.read<DetailCubit>().loadClientDetails(widget.client.id!);
+              }
+            },
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -32,13 +66,26 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.refresh),
-            // Example of calling a method on the cubit
-            onPressed: () => context.read<DetailCubit>().loadClientDetails(widget.client.id!),
+            onPressed: widget.client.id != null
+                ? () {
+              print('🔵 [ClientDetailsScreen] Refresh button pressed');
+              context.read<DetailCubit>().loadClientDetails(widget.client.id!);
+            }
+                : null,
           ),
         ],
       ),
-      body: BlocBuilder<DetailCubit, DetailState>(
+      body: widget.client.id == null
+          ? const Center(
+        child: Text(
+          'Invalid client: ID is missing',
+          style: TextStyle(fontSize: 16, color: Colors.red),
+        ),
+      )
+          : BlocBuilder<DetailCubit, DetailState>(
         builder: (context, state) {
+          print('🟡 [ClientDetailsScreen] BlocBuilder state: ${state.runtimeType}');
+
           // Handle Loading State
           if (state is DetailLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -46,14 +93,34 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
           // Handle Error State
           if (state is DetailError) {
-            return Center(child: Text('Error: ${state.message}'));
+            print('🔴 [ClientDetailsScreen] Error state: ${state.message}');
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error: ${state.message}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: widget.client.id != null
+                        ? () {
+                      print('🔵 [ClientDetailsScreen] Retry button pressed');
+                      context.read<DetailCubit>().loadClientDetails(widget.client.id!);
+                    }
+                        : null,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
           }
 
           // Handle Loaded State
           if (state is DetailLoaded) {
+            print('🟢 [ClientDetailsScreen] Loaded state: ${state.transactions.length} transactions, balance: ${state.clientBalance}');
+
             return Column(
               children: <Widget>[
-                // ... Your action buttons row ...
+                // Action buttons row
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                   child: Row(
@@ -61,17 +128,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                     children: <Widget>[
                       IconButton(
                         icon: const Icon(Icons.add_circle_outline, color: Colors.blue, size: 30),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            // TODO: Update AddTransactionDialog to use the cubit
-                            builder: (BuildContext context) => AddTransactionDialog(client: widget.client, onTap: () {
-
-                            },),
-                          );
-                        },
+                        onPressed: widget.client.id != null ? _showAddTransactionDialog : null,
                       ),
-                      // ... other IconButtons
+                      // Add more action buttons as needed
                     ],
                   ),
                 ),
@@ -82,8 +141,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   child: Row(
                     children: const <Widget>[
                       Expanded(child: Text("Date", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
-                      Expanded(child: Text("Details", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
                       Expanded(child: Text("Amount", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
+                      Expanded(child: Text("Details", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
                       Expanded(child: Text("Balance", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
                     ],
                   ),
@@ -91,17 +150,41 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
                 // Transaction List
                 Expanded(
-                  child: ListView.builder(
+                  child: state.transactions.isEmpty
+                      ? const Center(
+                    child: Text(
+                      'No transactions found for this client.',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  )
+                      : ListView.builder(
                     itemCount: state.transactions.length,
                     itemBuilder: (BuildContext context, int index) {
-                      // You'll need to adapt TransactionListItem to the new Transaction entity
-                      return TransactionListItem(transaction: state.transactions[index].toUi());
+                      final transaction = state.transactions[index];
+
+                      // Calculate running balance for display
+                      double runningBalance = 0.0;
+                      for (int i = 0; i <= index; i++) {
+                        final trans = state.transactions[i];
+                        runningBalance += trans.isAddition ? trans.amount : -trans.amount;
+                      }
+
+                      return TransactionListItem(
+                        transaction: transaction.toUi(balanceAfterTransaction: runningBalance),
+                      );
                     },
                   ),
                 ),
 
                 // Summary Footer
-                ClientSummaryFooter(summary: ClientSummary(currencySymbol: '0',netBalance: 0,totalAdded: 0,totalSubtracted: 0)),
+                ClientSummaryFooter(
+                  summary: ClientSummary(
+                    currencySymbol: '\$',
+                    netBalance: state.clientBalance,
+                    totalAdded: state.totalAdded,
+                    totalSubtracted: state.totalSubtracted,
+                  ),
+                ),
               ],
             );
           }
@@ -110,6 +193,14 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           return const Center(child: Text('Select a client to see details.'));
         },
       ),
+      floatingActionButton: widget.client.id != null
+          ? FloatingActionButton.extended(
+        onPressed: _showAddTransactionDialog,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Transaction'),
+        backgroundColor: Colors.blue,
+      )
+          : null,
     );
   }
 }

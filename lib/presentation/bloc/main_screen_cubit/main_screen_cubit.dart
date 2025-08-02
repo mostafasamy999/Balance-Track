@@ -94,7 +94,7 @@ class MainScreenCubit extends Cubit<MainScreenState> {
     result.fold(
           (failure) => emit(MainScreenError(message: _mapFailureToMessage(failure))),
           (clients) {
-        final uiClients = clients.map((c) => ClientUi(name: c.name, categoryId: c.categoryId)).toList();
+        final uiClients = clients.map((c) => ClientUi(id: c.id,name: c.name, categoryId: c.categoryId)).toList();
         emit(MainScreenClientsLoaded(clients: uiClients));
       },
     );

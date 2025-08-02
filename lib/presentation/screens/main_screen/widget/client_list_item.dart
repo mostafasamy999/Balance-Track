@@ -18,13 +18,15 @@ class ClientListItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: InkWell(
         onTap: () {
-          // Example of navigating from your MainScreen
+          print('client list item client id :: ${client.id}');
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => BlocProvider<DetailCubit>(
                 create: (_) => DetailCubit(
-                  getTransactionsByClientUseCase: injector(),
+                  getTransactionsByClient: injector(),
+                  getClientBalance: injector(),
+                  addTransactionUseCase: injector(),
                 ),
                 child: ClientDetailsScreen(client: client),
               ),

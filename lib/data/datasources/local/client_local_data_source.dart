@@ -118,6 +118,7 @@ class ClientLocalDataSourceImpl implements ClientLocalDataSource {
   @override
   Future<TransactionModel> addTransaction(TransactionModel transaction) async {
     try {
+      print('🔵 [LocalDataSource] Adding transaction: ${transaction.toJson()}');
       final result = await database.addTransaction(
         TransactionsCompanion(
           clientId: Value(transaction.clientId),
@@ -127,6 +128,7 @@ class ClientLocalDataSourceImpl implements ClientLocalDataSource {
           transactionDateTime: Value(transaction.dateTime),
         ),
       );
+      print('🟢 [LocalDataSource] Transaction added successfully: ID=${result.id}, Amount=${result.amount}, Client=${result.clientId}');
       return TransactionModel(
         id: result.id,
         clientId: result.clientId,

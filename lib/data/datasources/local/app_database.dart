@@ -58,8 +58,37 @@ class AppDatabase extends _$AppDatabase {
   // Clients CRUD
   Future<List<Client>> getAllClients() => select(clients).get();
 
-  Future<List<Client>> getClientsByCategory(int categoryId) {
-    return (select(clients)..where((c) => c.categoryId.equals(categoryId))).get();
+  // Add these debug methods to your AppDatabase class:
+
+
+// Also add this diagnostic method to your database:
+  Future<void> debugDatabaseContents() async {
+    print('🔍 [Database] === DATABASE DIAGNOSTIC START ===');
+
+    // Check all categories
+    final allCategories = await getAllCategories();
+    print('🔍 [Database] Total categories: ${allCategories.length}');
+    for (var category in allCategories) {
+      print('🔍 [Database] Category: ID=${category.id}, Name="${category.name}"');
+    }
+
+    // Check all clients
+    final allClients = await getAllClients();
+    print('🔍 [Database] Total clients: ${allClients.length}');
+    for (var client in allClients) {
+      print('🔍 [Database] Client: ID=${client.id}, Name="${client.name}", CategoryID=${client.categoryId}');
+    }
+
+    // Check clients by each category
+    for (var category in allCategories) {
+      final clientsInCategory = await (select(clients)..where((c) => c.categoryId.equals(category.id))).get();
+      print('🔍 [Database] Category "${category.name}" (ID=${category.id}) has ${clientsInCategory.length} clients');
+      for (var client in clientsInCategory) {
+        print('🔍 [Database]   - Client: "${client.name}" (ID=${client.id})');
+      }
+    }
+
+    print('🔍 [Database] === DATABASE DIAGNOSTIC END ===');
   }
 
   Future<Client?> getClientById(int id) async {
@@ -104,6 +133,8 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteTransaction(int id) {
     return (delete(transactions)..where((t) => t.id.equals(id))).go();
   }
+// Add these debug methods to your AppDatabase class:
+
 
   // Complex queries with joins
   Future<List<ClientWithCategory>> getClientsWithCategories() {
@@ -219,6 +250,77 @@ class AppDatabase extends _$AppDatabase {
     await delete(transactions).go();
     await delete(clients).go();
     await delete(categories).go();
+  }
+
+// Add these methods to your AppDatabase class:
+
+// Method to move all clients from one category to another
+  Future<int> moveClientsToCategory(int fromCategoryId, int toCategoryId) async {
+    print('🔧 [Database] Moving clients from category $fromCategoryId to category $toCategoryId');
+
+    final result = await (update(clients)
+      ..where((c) => c.categoryId.equals(fromCategoryId)))
+        .write(ClientsCompanion(categoryId: Value(toCategoryId)));
+
+    print('🟢 [Database] Moved $result clients to category $toCategoryId');
+    return result;
+  }
+
+// Auto-fix method that runs when getting clients
+  Future<void> _autoFixOrphanedClients() async {
+    try {
+      final allClients = await getAllClients();
+      final allCategories = await getAllCategories();
+
+      if (allClients.isEmpty || allCategories.isEmpty) return;
+
+      final categoryIds = allCategories.map((c) => c.id).toSet();
+      final firstCategoryId = allCategories.first.id;
+
+      // Find clients in non-existent categories
+      final orphanedClients = allClients.where((client) => !categoryIds.contains(client.categoryId)).toList();
+
+      if (orphanedClients.isNotEmpty) {
+        print('🔧 [Database] Found ${orphanedClients.length} orphaned clients, moving to category $firstCategoryId');
+
+        for (var client in orphanedClients) {
+          await (update(clients)
+            ..where((c) => c.id.equals(client.id)))
+              .write(ClientsCompanion(categoryId: Value(firstCategoryId)));
+
+          print('🟢 [Database] Moved client "${client.name}" to category $firstCategoryId');
+        }
+      }
+    } catch (e) {
+      print('🔴 [Database] Error in auto-fix: $e');
+    }
+  }
+
+// Update your getClientsByCategory method to include auto-fix:
+  Future<List<Client>> getClientsByCategory(int categoryId) async {
+    print('🔵 [Database] getClientsByCategory called with categoryId: $categoryId');
+
+    // Auto-fix orphaned clients first
+    await _autoFixOrphanedClients();
+
+    // First, let's see ALL clients in the database
+    getAllClients().then((allClients) {
+      print('🔍 [Database] ALL clients in database: ${allClients.length}');
+      for (var client in allClients) {
+        print('🔍 [Database]   - Client ID: ${client.id}, Name: "${client.name}", CategoryID: ${client.categoryId}');
+      }
+    });
+
+    final query = (select(clients)..where((c) => c.categoryId.equals(categoryId)));
+    print('🟡 [Database] Executing query for categoryId: $categoryId');
+
+    return query.get().then((result) {
+      print('🟢 [Database] Query result: ${result.length} clients found for categoryId: $categoryId');
+      for (var client in result) {
+        print('🟢 [Database]   - Found client: ID=${client.id}, Name="${client.name}", CategoryID=${client.categoryId}');
+      }
+      return result;
+    });
   }
 }
 

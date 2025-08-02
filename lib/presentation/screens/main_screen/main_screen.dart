@@ -19,13 +19,14 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   TabController? _tabController;
   Map<int, List<ClientUi>> _clientsByCategory = {};
-  Map<int, CategorySummary> _sampleCategorySummaries =
-      {};
+  Map<int, CategorySummary> _sampleCategorySummaries = {};
   int _selectedCategoryId = 1;
+  bool _hasLoadedInitialClients = false;
 
   @override
   void initState() {
     super.initState();
+    print('🔵 [MainScreen] initState - Loading categories');
     context.read<MainScreenCubit>().loadCategories();
   }
 
@@ -33,67 +34,97 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return BlocConsumer<MainScreenCubit, MainScreenState>(
       listener: (context, state) {
+        print('🟡 [MainScreen] BlocConsumer listener - State: ${state.runtimeType}');
+
         if (state is MainScreenError) {
+          print('🔴 [MainScreen] Error state: ${state.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         } else if (state is MainScreenCategoryAdded) {
+          print('🟢 [MainScreen] Category added: ${state.category.name}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('Category "${state.category.name}" added successfully!'),
+              content: Text('Category "${state.category.name}" added successfully!'),
               backgroundColor: Colors.green,
             ),
           );
+          // After adding a category, reload categories to refresh the view
+          context.read<MainScreenCubit>().loadCategories();
         } else if (state is MainScreenClientAdded) {
+          print('🟢 [MainScreen] Client added: ${state.client.name}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('Client "${state.client.name}" added successfully!'),
+              content: Text('Client "${state.client.name}" added successfully!'),
               backgroundColor: Colors.green,
             ),
           );
-          // Optionally re-fetch clients after adding
+          // Refresh clients for the current category after adding
           final currentCategoryId = _getCurrentCategoryId();
           if (currentCategoryId != null) {
-            context
-                .read<MainScreenCubit>()
-                .getClientsByCategory(currentCategoryId);
+            print('🔵 [MainScreen] Refreshing clients for category: $currentCategoryId');
+            context.read<MainScreenCubit>().getClientsByCategory(currentCategoryId);
           }
         } else if (state is MainScreenClientsLoaded) {
-          _clientsByCategory[_getCurrentCategoryId() ?? 0] = state.clients;
-          if (state.clients.isEmpty)
-            _selectedCategoryId = 1;
-          else
-            _selectedCategoryId = state.clients.first.categoryId;
+          print('🟢 [MainScreen] Clients loaded: ${state.clients.length} clients for category');
+          final currentCategoryId = _getCurrentCategoryId();
+          if (currentCategoryId != null) {
+            _clientsByCategory[currentCategoryId] = state.clients;
+            if (state.clients.isNotEmpty) {
+              _selectedCategoryId = currentCategoryId;
+            }
+          }
+        } else if (state is MainScreenCategoriesLoaded) {
+          print('🟢 [MainScreen] Categories loaded: ${state.categories.length} categories');
+
+          // Load clients for the first category automatically
+          if (state.categories.isNotEmpty && !_hasLoadedInitialClients) {
+            final firstCategoryId = state.categories[0].id ?? 0;
+            print('🔵 [MainScreen] Auto-loading clients for first category: $firstCategoryId');
+            _hasLoadedInitialClients = true;
+            _selectedCategoryId = firstCategoryId;
+
+            // Add a small delay to ensure the tab controller is set up
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.read<MainScreenCubit>().getClientsByCategory(firstCategoryId);
+            });
+          }
         }
       },
       builder: (context, state) {
+        print('🟡 [MainScreen] BlocConsumer builder - State: ${state.runtimeType}');
+
         final cubit = context.read<MainScreenCubit>();
 
         List<Category> categories = [];
+
+        // Get categories from the current state or from the cubit
         if (state is MainScreenCategoriesLoaded) {
           categories = state.categories;
-          _setupTabController(categories);
-          // Trigger first load
-          if (categories.isNotEmpty) {
-            context
-                .read<MainScreenCubit>()
-                .getClientsByCategory(categories[0].id ?? 0);
-          }
+          print('🟡 [MainScreen] Using categories from state: ${categories.length}');
         } else if (cubit.categories.isNotEmpty) {
           categories = cubit.categories;
+          print('🟡 [MainScreen] Using categories from cubit: ${categories.length}');
+        }
+
+        // Set up tab controller when we have categories
+        if (categories.isNotEmpty) {
           _setupTabController(categories);
         }
 
         if (state is MainScreenLoading) {
+          print('🟡 [MainScreen] Showing loading state');
           return const Scaffold(
-              body: Center(child: CircularProgressIndicator()));
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
 
         if (categories.isEmpty) {
+          print('🟡 [MainScreen] No categories found, showing empty state');
           return _buildEmptyState(context);
         }
+
+        print('🟡 [MainScreen] Building main UI with ${categories.length} categories');
 
         return DefaultTabController(
           length: categories.length,
@@ -104,19 +135,24 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () => _showAddCategoryDialog(context, (category) {
+                    print('🔵 [MainScreen] Adding new category: ${category.name}');
                     context.read<MainScreenCubit>().addCategory(category);
                   }),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () => _showDeleteAllDialog(context, () {
+                    print('🔵 [MainScreen] Deleting all data');
                     context.read<MainScreenCubit>().deleteAllData();
                   }),
                 ),
                 IconButton(
                   icon: const Icon(Icons.refresh),
-                  onPressed: () =>
-                      context.read<MainScreenCubit>().loadCategories(),
+                  onPressed: () {
+                    print('🔵 [MainScreen] Refresh button pressed');
+                    _hasLoadedInitialClients = false;
+                    context.read<MainScreenCubit>().loadCategories();
+                  },
                 ),
               ],
               bottom: TabBar(
@@ -124,9 +160,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 isScrollable: categories.length > 3,
                 onTap: (index) {
                   final categoryId = categories[index].id ?? 0;
-                  context
-                      .read<MainScreenCubit>()
-                      .getClientsByCategory(categoryId);
+                  print('🔵 [MainScreen] Tab tapped - Loading clients for category: $categoryId');
+                  _selectedCategoryId = categoryId;
+                  context.read<MainScreenCubit>().getClientsByCategory(categoryId);
                 },
                 tabs: categories.map((c) => Tab(text: c.name)).toList(),
               ),
@@ -135,29 +171,33 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               controller: _tabController,
               children: categories.map((category) {
                 final clients = _clientsByCategory[category.id] ?? [];
-                final summary =
-                    _sampleCategorySummaries[category.id] ?? CategorySummary();
+                final summary = _sampleCategorySummaries[category.id] ?? CategorySummary();
+
+                print('🟡 [MainScreen] Building CategoryPageView for ${category.name}: ${clients.length} clients');
+
                 return CategoryPageView(
-                  category:
-                      CategoryUi(id: category.id ?? 0, name: category.name),
+                  category: CategoryUi(id: category.id ?? 0, name: category.name),
                   clients: clients,
                   summary: summary,
                 );
               }).toList(),
             ),
             floatingActionButton: FloatingActionButton(
-              onPressed: () => showDialog(
-                context: context,
-                builder: (context) {
-                  return BlocProvider<AddClientCubit>(
-                    create: (_) => AddClientCubit(addClientUseCase: injector()),
-                    child: AddNewAccountDialog(
-                      onTap: (client) => _insertClient(client),
-                      selectedCategoryId: _selectedCategoryId,
-                    ),
-                  );
-                },
-              ),
+              onPressed: () {
+                print('🔵 [MainScreen] FloatingActionButton pressed - Selected category: $_selectedCategoryId');
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return BlocProvider<AddClientCubit>(
+                      create: (_) => AddClientCubit(addClientUseCase: injector()),
+                      child: AddNewAccountDialog(
+                        onTap: (client) => _insertClient(client),
+                        selectedCategoryId: _selectedCategoryId,
+                      ),
+                    );
+                  },
+                );
+              },
               backgroundColor: Colors.blue,
               child: const Icon(Icons.add),
             ),
@@ -169,12 +209,21 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   void _setupTabController(List<Category> categories) {
     if (_tabController == null || _tabController!.length != categories.length) {
+      print('🟡 [MainScreen] Setting up TabController with ${categories.length} tabs');
+      _tabController?.dispose();
       _tabController = TabController(length: categories.length, vsync: this);
+
+      // Set the initial tab to match the selected category
+      if (categories.isNotEmpty) {
+        final selectedIndex = categories.indexWhere((c) => c.id == _selectedCategoryId);
+        if (selectedIndex != -1) {
+          _tabController!.index = selectedIndex;
+        }
+      }
     }
   }
 
-  void _showAddCategoryDialog(
-      BuildContext context, Function(CategoryUi) onTap) {
+  void _showAddCategoryDialog(BuildContext context, Function(CategoryUi) onTap) {
     final controller = TextEditingController();
 
     showDialog(
@@ -182,13 +231,15 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       builder: (ctx) => AlertDialog(
         title: const Text('Add New Category'),
         content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: 'Enter category name')),
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Enter category name'),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = controller.text.trim();
@@ -203,47 +254,62 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       ),
     );
   }
-  void _showDeleteAllDialog(
-      BuildContext context, Function() onTap) {
 
+  void _showDeleteAllDialog(BuildContext context, Function() onTap) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete All'),
-        content: Text(
-            'You sure to delete all data'),
+        content: const Text('Are you sure you want to delete all data?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
-                onTap();
+              onTap();
               Navigator.of(ctx).pop();
             },
             child: const Text('Delete'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
           ),
         ],
       ),
     );
   }
-  // In MainScreen class
-  void _insertClient(ClientUi newClient) {
-    // REMOVE THIS LINE:
-    // context.read<MainScreenCubit>().addClient(newClient);
 
-    // Only refresh the category
+  void _insertClient(ClientUi newClient) {
+    print('🔵 [MainScreen] Client dialog completed - Refreshing category: ${newClient.categoryId}');
+
+    // Only refresh the clients for the category where the client was added
     context.read<MainScreenCubit>().getClientsByCategory(newClient.categoryId);
+
+    // Update the selected category if needed
+    if (_selectedCategoryId != newClient.categoryId) {
+      _selectedCategoryId = newClient.categoryId;
+
+      // Switch to the correct tab if needed
+      final categories = context.read<MainScreenCubit>().categories;
+      final categoryIndex = categories.indexWhere((c) => c.id == newClient.categoryId);
+      if (categoryIndex != -1 && _tabController != null) {
+        _tabController!.animateTo(categoryIndex);
+      }
+    }
   }
 
   int? _getCurrentCategoryId() {
-    if (_tabController == null) return null;
-    final index = _tabController!.index;
     final categories = context.read<MainScreenCubit>().categories;
-    if (index < categories.length) {
-      return categories[index].id;
+    if (_tabController != null && categories.isNotEmpty) {
+      final index = _tabController!.index;
+      if (index < categories.length) {
+        final categoryId = categories[index].id;
+        print('🟡 [MainScreen] Current category ID from tab: $categoryId');
+        return categoryId;
+      }
     }
-    return null;
+    print('🟡 [MainScreen] Current category ID fallback: $_selectedCategoryId');
+    return _selectedCategoryId;
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -265,11 +331,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           children: [
             Icon(Icons.category, size: 64, color: Colors.grey),
             SizedBox(height: 16),
-            Text('No categories found',
-                style: TextStyle(fontSize: 18, color: Colors.grey)),
+            Text('No categories found', style: TextStyle(fontSize: 18, color: Colors.grey)),
             SizedBox(height: 8),
-            Text('Add a category to get started',
-                style: TextStyle(fontSize: 14, color: Colors.grey)),
+            Text('Add a category to get started', style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
       ),
@@ -281,5 +345,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
   }
 }

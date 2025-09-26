@@ -1,16 +1,11 @@
-import 'package:equatable/equatable.dart';
-
-class Client extends Equatable {
-  final int? id;
+class Client {
+  final int id;
   final String name;
-  final int categoryId;
+  final String category;
 
-  const Client({
-    this.id,
+  Client({
+    required this.id,
     required this.name,
-    required this.categoryId,
+    required this.category,
   });
-
-  @override
-  List<Object?> get props => [id, name, categoryId];
 }

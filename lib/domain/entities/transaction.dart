@@ -1,25 +1,15 @@
-import 'package:equatable/equatable.dart';
-
-class Transaction extends Equatable {
-  final int? id;
+class Transaction {
+  final int id;
   final int clientId;
   final double amount;
-  final bool isAddition;
-  final String details;
-  final DateTime dateTime;
+  final String status;
+  final DateTime datetime;
 
-  const Transaction({
-    this.id,
+  Transaction({
+    required this.id,
     required this.clientId,
     required this.amount,
-    required this.isAddition,
-    required this.details,
-    required this.dateTime,
+    required this.status,
+    required this.datetime,
   });
-
-  @override
-  List<Object?> get props => [id, clientId, amount, isAddition, details, dateTime];
-
-  // Helper method to get the actual value (positive or negative)
-  double get value => isAddition ? amount : -amount;
 }

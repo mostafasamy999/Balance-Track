@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:client_ledger/data/local/database.dart';
-import 'package:client_ledger/data/local/client_local_data_source.dart';
 
 class ClientTestScreen extends StatefulWidget {
   const ClientTestScreen({super.key});
@@ -11,7 +10,6 @@ class ClientTestScreen extends StatefulWidget {
 
 class _ClientTestScreenState extends State<ClientTestScreen> {
   late final AppDatabase _db;
-  late final ClientLocalDataSourceImpl _dataSource;
 
   List<ClientTableData> clients = [];
   List<TransactionTableData> transactions = [];
@@ -27,13 +25,10 @@ class _ClientTestScreenState extends State<ClientTestScreen> {
   void initState() {
     super.initState();
     _db = AppDatabase();
-    _dataSource = ClientLocalDataSourceImpl(database: _db);
     _loadClients();
   }
 
   Future<void> _loadClients() async {
-    final list = await _dataSource.getClientsByCategory(categoryController.text);
-    setState(() => clients = list);
   }
 
   Future<void> _addClient() async {
@@ -47,8 +42,6 @@ class _ClientTestScreenState extends State<ClientTestScreen> {
 
   Future<void> _loadTransactions() async {
     if (selectedClientId == null) return;
-    final list = await _dataSource.getTransactionsByClient(selectedClientId!);
-    setState(() => transactions = list);
   }
 
   Future<void> _addTransaction() async {
@@ -67,7 +60,6 @@ class _ClientTestScreenState extends State<ClientTestScreen> {
   }
 
   Future<void> _clearAll() async {
-    await _dataSource.clearAllData();
     setState(() {
       clients = [];
       transactions = [];

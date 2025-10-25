@@ -1,7 +1,7 @@
-import 'package:client_ledger/presentation/my_app.dart';
 import 'package:flutter/material.dart';
 
 import 'di/injection.dart';
+import 'my_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -13,10 +13,8 @@ class ClientDao extends DatabaseAccessor<AppDatabase> with _$ClientDaoMixin {
 
   Stream<List<ClientTableData>> watchAllClients() => select(clientTable).watch();
 
-  Future<int> insertClient(ClientTableCompanion client) =>
-      into(clientTable).insert(client);
-
-  // ✅ Query with total amount per client
+  Future<int> insertClient({required String name,required  String category}) =>
+      into(clientTable).insert(ClientTableData( id:-1,name: name, category: category));
   Future<List<ClientWithTotal>> getClientsWithTotal() async {
     final query = select(clientTable).join([
       leftOuterJoin(
@@ -31,10 +29,12 @@ class ClientDao extends DatabaseAccessor<AppDatabase> with _$ClientDaoMixin {
     for (final row in rows) {
       final client = row.readTable(clientTable);
       final transaction = row.readTableOrNull(transactionTable);
+
       grouped.putIfAbsent(
         client.id,
-            () => ClientWithTotal(client: clientTable, totalAmount: 0),
+            () => ClientWithTotal(client: client, totalAmount: 0), // ✅ FIXED
       );
+
       if (transaction != null) {
         grouped[client.id] =
             grouped[client.id]!.copyWithAddedAmount(transaction.amount);
@@ -42,11 +42,12 @@ class ClientDao extends DatabaseAccessor<AppDatabase> with _$ClientDaoMixin {
     }
     return grouped.values.toList();
   }
+
 }
 
 // DTO
 class ClientWithTotal {
-  final ClientTable client;
+  final ClientTableData client;
   final double totalAmount;
 
   ClientWithTotal({required this.client, required this.totalAmount});

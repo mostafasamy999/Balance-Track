@@ -1,124 +1,125 @@
 import 'package:flutter/material.dart';
-import 'package:client_ledger/data/local/database.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ClientTestScreen extends StatefulWidget {
-  const ClientTestScreen({super.key});
+import '../../../data/local/database.dart';
+import '../../bloc/main_screen/main_screen_cubit.dart';
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  State<ClientTestScreen> createState() => _ClientTestScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _ClientTestScreenState extends State<ClientTestScreen> {
-  late final AppDatabase _db;
-
-  List<ClientTableData> clients = [];
-  List<TransactionTableData> transactions = [];
-
-  final nameController = TextEditingController();
-  final categoryController = TextEditingController(text: "General");
-  final amountController = TextEditingController();
-  final statusController = TextEditingController(text: "pending");
-
-  int? selectedClientId;
-
+class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _db = AppDatabase();
-    _loadClients();
+    // ✅ Load data once when screen starts
+    context.read<MainScreenCubit>().getClientsList();
   }
+  void _showAddClientDialog(BuildContext parentContext) {
+    final nameController = TextEditingController();
+    final categoryController = TextEditingController();
 
-  Future<void> _loadClients() async {
-  }
+    showDialog(
+      context: parentContext,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text('Add New Client'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Client Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: categoryController,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                final category = categoryController.text.trim();
 
-  Future<void> _addClient() async {
-    final client = ClientTableCompanion.insert(
-      name: nameController.text,
-      category: categoryController.text,
+                if (name.isNotEmpty && category.isNotEmpty) {
+                  parentContext.read<MainScreenCubit>().addClient(
+                      name: name,
+                      category: category,
+                  );
+                  Navigator.pop(dialogContext);
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
     );
-    await _db.into(_db.clientTable).insert(client);
-    await _loadClients();
   }
 
-  Future<void> _loadTransactions() async {
-    if (selectedClientId == null) return;
-  }
-
-  Future<void> _addTransaction() async {
-    if (selectedClientId == null) return;
-    final amount = double.tryParse(amountController.text) ?? 0.0;
-
-    final transaction = TransactionTableCompanion.insert(
-      clientId: selectedClientId!,
-      amount: amount,
-      status: statusController.text,
-      datetime: DateTime.now(),
-    );
-
-    await _db.into(_db.transactionTable).insert(transaction);
-    await _loadTransactions();
-  }
-
-  Future<void> _clearAll() async {
-    setState(() {
-      clients = [];
-      transactions = [];
-      selectedClientId = null;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Client Ledger Test UI"),
-        actions: [
-          IconButton(
-            onPressed: _clearAll,
-            icon: const Icon(Icons.delete_forever),
-            tooltip: "Clear All Data",
-          ),
-        ],
+      appBar: AppBar(title: const Text('Clients with Totals')),
+      body: BlocBuilder<MainScreenCubit, MainScreenState>(
+        builder: (context, state) {
+          print('MainScreen state: $state');
+          if (state is LoadingState) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is GetDataSuccessState) {
+            final clients = state.clients;
+            if (clients.isEmpty) {
+              return const Center(child: Text('No clients found'));
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: clients.length,
+              itemBuilder: (context, i) {
+                final client = clients[i];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    title: Text(client.client.name),
+                    subtitle: Text('Category: ${client.client.category}'),
+                    trailing: Text(
+                      client.totalAmount.toStringAsFixed(2),
+                      style: const TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          } else {
+            return const Center(child: Text('No data'));
+          }
+        },
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            const Text("Add Client", style: TextStyle(fontWeight: FontWeight.bold)),
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: "Client Name")),
-            TextField(controller: categoryController, decoration: const InputDecoration(labelText: "Category")),
-            ElevatedButton(onPressed: _addClient, child: const Text("Add Client")),
-            const Divider(),
-
-            const Text("Clients", style: TextStyle(fontWeight: FontWeight.bold)),
-            for (final c in clients)
-              ListTile(
-                title: Text("${c.name} (${c.category})"),
-                subtitle: Text("ID: ${c.id}"),
-                selected: selectedClientId == c.id,
-                onTap: () {
-                  setState(() => selectedClientId = c.id);
-                  _loadTransactions();
-                },
-              ),
-            const Divider(),
-
-            if (selectedClientId != null) ...[
-              Text("Add Transaction for Client #$selectedClientId", style: const TextStyle(fontWeight: FontWeight.bold)),
-              TextField(controller: amountController, decoration: const InputDecoration(labelText: "Amount")),
-              TextField(controller: statusController, decoration: const InputDecoration(labelText: "Status")),
-              ElevatedButton(onPressed: _addTransaction, child: const Text("Add Transaction")),
-              const Divider(),
-
-              const Text("Transactions", style: TextStyle(fontWeight: FontWeight.bold)),
-              for (final t in transactions)
-                ListTile(
-                  title: Text("Amount: ${t.amount} | Status: ${t.status}"),
-                  subtitle: Text("Date: ${t.datetime.toLocal()}"),
-                ),
-            ],
-          ],
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddClientDialog(context),
+        child: const Icon(Icons.add),
       ),
     );
   }

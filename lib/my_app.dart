@@ -1,5 +1,6 @@
 import 'package:client_ledger/di/injection.dart';
-import 'package:client_ledger/presentation/bloc/main_screen/main_screen_cubit.dart';
+import 'package:client_ledger/presentation/bloc/main_cubit/main_screen_cubit.dart';
+import 'package:client_ledger/presentation/bloc/tranaction_cubit/transaction_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:client_ledger/presentation/screens/main_screen/main_screen.dart';
@@ -18,9 +19,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home:MultiBlocProvider(
         providers: [
-          BlocProvider<MainScreenCubit>(
-            create: (_) => MainScreenCubit(injector()),
-          ),
+          BlocProvider<MainScreenCubit>(create: (_) => injector()),
+          BlocProvider<TransactionCubit>(create: (_) => injector()),
+
          ],
         child: const MainScreen(),
       ),

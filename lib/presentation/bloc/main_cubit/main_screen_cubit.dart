@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 
 import '../../../data/local/daos/client_dao.dart';
 import '../../../data/local/database.dart';
+import '../../ui_models/client_with_total.dart';
 
 part 'main_screen_state.dart';
 

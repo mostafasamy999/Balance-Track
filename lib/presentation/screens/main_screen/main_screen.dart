@@ -1,8 +1,11 @@
+import 'package:client_ledger/presentation/screens/transaction_screen/transaction_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/local/database.dart';
-import '../../bloc/main_screen/main_screen_cubit.dart';
+import '../../../di/injection.dart';
+import '../../bloc/main_cubit/main_screen_cubit.dart';
+import '../../bloc/tranaction_cubit/transaction_cubit.dart' as t;
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,6 +21,71 @@ class _MainScreenState extends State<MainScreen> {
     // ✅ Load data once when screen starts
     context.read<MainScreenCubit>().getClientsList();
   }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Clients with Totals')),
+      body: BlocBuilder<MainScreenCubit, MainScreenState>(
+        builder: (context, state) {
+          print('MainScreen state: $state');
+          if (state is LoadingState) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is GetDataSuccessState) {
+            final clients = state.clients;
+            if (clients.isEmpty) {
+              return const Center(child: Text('No clients found'));
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: clients.length,
+              itemBuilder: (context, i) {
+                final client = clients[i];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider(
+                            create: (_) => t.TransactionCubit(injector()),
+                            child: TransactionScreen(clientId: client.client.id),
+                          ),
+                        ),
+                      ).then((value) {
+                        // Refresh the client list when returning from the transaction screen
+                        context.read<MainScreenCubit>().getClientsList();
+                      });
+
+
+                    },
+                    title: Text(client.client.name),
+                    subtitle: Text('Category: ${client.client.category}'),
+                    trailing: Text(
+                      client.totalAmount.toStringAsFixed(2),
+                      style: const TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          } else {
+            return const Center(child: Text('No data'));
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddClientDialog(context),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
   void _showAddClientDialog(BuildContext parentContext) {
     final nameController = TextEditingController();
     final categoryController = TextEditingController();
@@ -62,8 +130,8 @@ class _MainScreenState extends State<MainScreen> {
 
                 if (name.isNotEmpty && category.isNotEmpty) {
                   parentContext.read<MainScreenCubit>().addClient(
-                      name: name,
-                      category: category,
+                    name: name,
+                    category: category,
                   );
                   Navigator.pop(dialogContext);
                 }
@@ -76,51 +144,4 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Clients with Totals')),
-      body: BlocBuilder<MainScreenCubit, MainScreenState>(
-        builder: (context, state) {
-          print('MainScreen state: $state');
-          if (state is LoadingState) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is GetDataSuccessState) {
-            final clients = state.clients;
-            if (clients.isEmpty) {
-              return const Center(child: Text('No clients found'));
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: clients.length,
-              itemBuilder: (context, i) {
-                final client = clients[i];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    title: Text(client.client.name),
-                    subtitle: Text('Category: ${client.client.category}'),
-                    trailing: Text(
-                      client.totalAmount.toStringAsFixed(2),
-                      style: const TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          } else {
-            return const Center(child: Text('No data'));
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddClientDialog(context),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
 }

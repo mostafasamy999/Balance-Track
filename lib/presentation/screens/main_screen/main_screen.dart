@@ -82,7 +82,7 @@ class _MainScreenState extends State<MainScreen> {
                           title: Text(client.client.name),
                           subtitle: Text('Category: ${client.client.category}'),
                           trailing: Text(
-                            '${total.abs().toStringAsFixed(2)} ($totalStatus)',
+                            '${total.abs().toStringAsFixed(0)} ($totalStatus)',
                             style: TextStyle(
                               color: totalColor,
                               fontWeight: FontWeight.bold,
@@ -102,7 +102,7 @@ class _MainScreenState extends State<MainScreen> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     trailing: Text(
-                      '${grandTotal.abs().toStringAsFixed(2)} ($grandStatus)',
+                      '${grandTotal.abs().toStringAsFixed(0)} ($grandStatus)',
                       style: TextStyle(
                         color: grandColor,
                         fontWeight: FontWeight.bold,

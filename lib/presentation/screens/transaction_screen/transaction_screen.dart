@@ -88,7 +88,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       children: [
                         const Text("Total Put (+)",
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text("${totalPut.toStringAsFixed(2)} EGP",
+                        Text("${totalPut.toStringAsFixed(0)} EGP",
                             style: const TextStyle(color: Colors.green)),
                       ],
                     ),
@@ -97,7 +97,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       children: [
                         const Text("Total Pull (-)",
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text("${totalPull.toStringAsFixed(2)} EGP",
+                        Text("${totalPull.toStringAsFixed(0)} EGP",
                             style: const TextStyle(color: Colors.red)),
                       ],
                     ),
@@ -106,7 +106,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       children: [
                         const Text("Final Total",
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text("${finalTotal.toStringAsFixed(2)} EGP",
+                        Text("${finalTotal.toStringAsFixed(0)} EGP",
                             style: const TextStyle(color: Colors.blue)),
                       ],
                     ),
@@ -121,7 +121,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   final t = transactions[index];
                   return Card(
                     child: ListTile(
-                      title: Text("${t.amount.toStringAsFixed(2)} EGP",
+                      title: Text("${t.amount.toStringAsFixed(0)} EGP",
                         style: TextStyle(
                           color: t.status ? Colors.green : Colors.red, // green for Put, red for Pull
                           fontWeight: FontWeight.bold,

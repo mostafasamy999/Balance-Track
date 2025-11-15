@@ -10,12 +10,10 @@ part 'client_dao.g.dart';
 class ClientDao extends DatabaseAccessor<AppDatabase> with _$ClientDaoMixin {
   ClientDao(AppDatabase db) : super(db);
 
-  Future<List<ClientTableData>> getAllClients() => select(clientTable).get();
-
-  Stream<List<ClientTableData>> watchAllClients() => select(clientTable).watch();
-
   Future<int> insertClient({required String name,required  String category}) =>
       into(clientTable).insert(ClientTableCompanion(name: Value(name), category: Value(category)));
+
+
   Future<List<ClientWithTotal>> getClientsWithTotal() async {
     final query = select(clientTable).join([
       leftOuterJoin(
@@ -37,8 +35,9 @@ class ClientDao extends DatabaseAccessor<AppDatabase> with _$ClientDaoMixin {
       );
 
       if (transaction != null) {
+        final newAmount = (transaction.status)?transaction.amount: -transaction.amount;
         grouped[client.id] =
-            grouped[client.id]!.copyWithAddedAmount(transaction.amount);
+            grouped[client.id]!.copyWithAddedAmount(newAmount);
       }
     }
     return grouped.values.toList();

@@ -8,3 +8,4 @@ void main() async {
   await init();
   runApp(const MyApp());
 }
+//flutter pub run intl_utils:generate

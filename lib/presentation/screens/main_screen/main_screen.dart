@@ -1,11 +1,11 @@
 import 'package:client_ledger/presentation/screens/transaction_screen/transaction_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../data/local/database.dart';
 import '../../../di/injection.dart';
+import '../../../generated/l10n.dart';
 import '../../bloc/main_cubit/main_screen_cubit.dart';
 import '../../bloc/tranaction_cubit/transaction_cubit.dart' as t;
+
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -22,11 +22,10 @@ class _MainScreenState extends State<MainScreen> {
     context.read<MainScreenCubit>().getClientsList();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Clients with Totals')),
+      appBar: AppBar(title: Text(S.of(context).clients)),
       body: BlocBuilder<MainScreenCubit, MainScreenState>(
         builder: (context, state) {
           print('MainScreen state: $state');
@@ -35,19 +34,22 @@ class _MainScreenState extends State<MainScreen> {
           } else if (state is GetDataSuccessState) {
             final clients = state.clients;
             if (clients.isEmpty) {
-              return const Center(child: Text('No clients found'));
+              return Center(child: Text(S.of(context).no_clients_found));
             }
             if (clients.isEmpty) {
-              return const Center(child: Text('No clients found'));
+              return Center(child: Text(S.of(context).no_clients_found));
             }
 
             // Calculate grand total across all clients
             double grandTotal = 0;
             for (final c in clients) {
-              grandTotal += c.totalAmount; // assume totalAmount is +ve for Put, -ve for Pull
+              grandTotal += c
+                  .totalAmount; // assume totalAmount is +ve for Put, -ve for Pull
             }
 
-            final grandStatus = grandTotal >= 0 ? 'Put (+)' : 'Pull (-)';
+            final grandStatus = grandTotal >= 0
+                ? S.of(context).status_credit
+                : S.of(context).status_debt;
             final grandColor = grandTotal >= 0 ? Colors.green : Colors.red;
 
             return Column(
@@ -60,7 +62,9 @@ class _MainScreenState extends State<MainScreen> {
                       final client = clients[i];
 
                       final total = client.totalAmount;
-                      final totalStatus = total >= 0 ? 'Put (+)' : 'Pull (-)';
+                      final totalStatus = total >= 0
+                          ? S.of(context).status_put
+                          : S.of(context).status_pull;
                       final totalColor = total >= 0 ? Colors.green : Colors.red;
 
                       return Card(
@@ -72,7 +76,8 @@ class _MainScreenState extends State<MainScreen> {
                               MaterialPageRoute(
                                 builder: (_) => BlocProvider(
                                   create: (_) => t.TransactionCubit(injector()),
-                                  child: TransactionScreen(clientId: client.client.id),
+                                  child: TransactionScreen(
+                                      clientId: client.client.id),
                                 ),
                               ),
                             ).then((value) {
@@ -80,7 +85,8 @@ class _MainScreenState extends State<MainScreen> {
                             });
                           },
                           title: Text(client.client.name),
-                          subtitle: Text('Category: ${client.client.category}'),
+                          subtitle: Text(
+                              '${S.of(context).category_label}: ${client.client.category}'),
                           trailing: Text(
                             '${total.abs().toStringAsFixed(0)} ($totalStatus)',
                             style: TextStyle(
@@ -95,10 +101,10 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 Card(
                   color: Colors.grey[200],
-                  margin: const EdgeInsets.fromLTRB(12,12,82,12),
+                  margin: const EdgeInsetsDirectional.fromSTEB(12, 12, 82, 12),
                   child: ListTile(
-                    title: const Text(
-                      'Grand Total',
+                    title: Text(
+                      S.of(context).grand_total_label,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     trailing: Text(
@@ -113,7 +119,7 @@ class _MainScreenState extends State<MainScreen> {
               ],
             );
           } else {
-            return const Center(child: Text('No data'));
+            return Center(child: Text(S.of(context).no_data));
           }
         },
       ),
@@ -135,22 +141,22 @@ class _MainScreenState extends State<MainScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text('Add New Client'),
+          title: Text(S.of(context).add_new_client),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Client Name',
+                decoration: InputDecoration(
+                  labelText: S.of(context).client_name_label,
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: categoryController,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
+                decoration: InputDecoration(
+                  labelText: S.of(context).category,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -159,27 +165,25 @@ class _MainScreenState extends State<MainScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: Text(S.of(context).cancel),
             ),
             ElevatedButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                final category = categoryController.text.trim();
+                onPressed: () {
+                  final name = nameController.text.trim();
+                  final category = categoryController.text.trim();
 
-                if (name.isNotEmpty && category.isNotEmpty) {
-                  parentContext.read<MainScreenCubit>().addClient(
-                    name: name,
-                    category: category,
-                  );
-                  Navigator.pop(dialogContext);
-                }
-              },
-              child: const Text('Add'),
-            ),
+                  if (name.isNotEmpty && category.isNotEmpty) {
+                    parentContext.read<MainScreenCubit>().addClient(
+                          name: name,
+                          category: category,
+                        );
+                    Navigator.pop(dialogContext);
+                  }
+                },
+                child: Text(S.of(context).add)),
           ],
         );
       },
     );
   }
-
 }

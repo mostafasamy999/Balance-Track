@@ -1,10 +1,10 @@
 name: client_ledger
 description: "A client transaction tracking application."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'  # Changed to a more compatible SDK constraint
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -25,7 +25,9 @@ dependencies:
   sqflite: ^2.4.1
   uuid: ^4.5.1
   shimmer: ^3.0.0
-  intl: ^0.20.2
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -33,6 +35,15 @@ dev_dependencies:
   drift_dev: ^2.8.0
   build_runner: ^2.3.3
   flutter_lints: ^2.0.0
+  intl_utils: ^2.8.5   # MUST BE HERE (devDependencies)
 
 flutter:
   uses-material-design: true
+  generate: true
+
+flutter_intl:
+  enabled: true
+  class_name: S
+  main_locale: en
+  arb_dir: lib/l10n
+  output_dir: lib/generated

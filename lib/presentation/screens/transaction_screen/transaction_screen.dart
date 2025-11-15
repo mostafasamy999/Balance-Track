@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../generated/l10n.dart';
 import '../../bloc/tranaction_cubit/transaction_cubit.dart';
 import '../../ui_models/client_transactions.dart';
 
@@ -25,7 +26,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Transactions")),
+      appBar: AppBar(title: Text(S.of(context).transactions_appbar)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddEditDialog(context, clientId: widget.clientId),
         child: const Icon(Icons.add),
@@ -58,7 +59,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             final transactions = state.transactions;
 
             if (transactions.isEmpty) {
-              return const Center(child: Text("No Transactions Found"));
+              return Center(child: Text(S.of(context).no_transactions_found));
             }
 
             // ---- Calculate put & pull ----
@@ -86,27 +87,39 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Total Put (+)",
+                        Text(S.of(context).total_put,
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text("${totalPut.toStringAsFixed(0)} EGP",
+                        Text(
+                            S
+                                .of(context)
+                                .currency_egp(totalPut.toStringAsFixed(0)),
                             style: const TextStyle(color: Colors.green)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Total Pull (-)",
+                        Text(
+                            S
+                                .of(context)
+                                .total_pull,
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text("${totalPull.toStringAsFixed(0)} EGP",
+                        Text(
+                            S
+                                .of(context)
+                                .currency_egp(totalPull.toStringAsFixed(0)),
                             style: const TextStyle(color: Colors.red)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Final Total",
+                        Text(S.of(context).final_total,
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text("${finalTotal.toStringAsFixed(0)} EGP",
+                        Text(
+                            S
+                                .of(context)
+                                .currency_egp(finalTotal.toStringAsFixed(0)),
                             style: const TextStyle(color: Colors.blue)),
                       ],
                     ),
@@ -121,23 +134,28 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   final t = transactions[index];
                   return Card(
                     child: ListTile(
-                      title: Text("${t.amount.toStringAsFixed(0)} EGP",
+                      title: Text(
+                        S.of(context).currency_egp(t.amount.toStringAsFixed(0)),
                         style: TextStyle(
-                          color: t.status ? Colors.green : Colors.red, // green for Put, red for Pull
-                          fontWeight: FontWeight.bold,
-                        ),),
-                      subtitle: Text(t.status ? "Put (+)" : "Pull (-)",
-                        style: TextStyle(
-                          color: t.status ? Colors.green : Colors.red, // green for Put, red for Pull
+                          color: t.status ? Colors.green : Colors.red,
+                          // green for Put, red for Pull
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      trailing:Text(
+                      subtitle: Text(
+                        t.status
+                            ? S.of(context).status_put
+                            : S.of(context).status_pull,
+                        style: TextStyle(
+                          color: t.status ? Colors.green : Colors.red,
+                          // green for Put, red for Pull
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      trailing: Text(
                         DateFormat('dd/MM/yyyy hh:mm a').format(t.datetime),
                         style: const TextStyle(fontSize: 12),
                       ),
-
-
                       onTap: () => _showAddEditDialog(
                         context,
                         edit: t,
@@ -170,14 +188,16 @@ class _TransactionScreenState extends State<TransactionScreen> {
         return StatefulBuilder(
           builder: (ctx, setState) {
             return AlertDialog(
-              title:
-                  Text(edit == null ? "Add Transaction" : "Edit Transaction"),
+              title: Text(edit == null
+                  ? S.of(context).add_transaction
+                  : S.of(context).edit_transaction),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: amountCon,
-                    decoration: const InputDecoration(labelText: "Amount"),
+                    decoration:
+                        InputDecoration(labelText: S.of(context).amount_label),
                     keyboardType: TextInputType.number,
                   ),
 
@@ -187,8 +207,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Status:",
+                       Text(
+                        S.of(context).status_label,
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Row(
@@ -200,7 +220,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               setState(() => status = val!);
                             },
                           ),
-                          const Text("Put (+)"),
+                          Text(S.of(context).status_put),
                         ],
                       ),
                       Row(
@@ -212,7 +232,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               setState(() => status = val!);
                             },
                           ),
-                          const Text("Pull (-)"),
+                          Text(S.of(context).status_pull),
                         ],
                       ),
                     ],
@@ -223,7 +243,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text("Cancel")),
+                    child: Text(S.of(context).cancel)),
                 ElevatedButton(
                   onPressed: () async {
                     final cubit = context.read<TransactionCubit>();
@@ -246,7 +266,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     cubit.getTransactionList(clientId);
                     Navigator.pop(ctx);
                   },
-                  child: Text(edit == null ? "Add" : "Update"),
+                  child: Text(
+                      edit == null ? S.of(context).add : S.of(context).update),
                 ),
               ],
             );

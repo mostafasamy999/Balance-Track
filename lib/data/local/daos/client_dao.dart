@@ -31,7 +31,7 @@ class ClientDao extends DatabaseAccessor<AppDatabase> with _$ClientDaoMixin {
 
       grouped.putIfAbsent(
         client.id,
-            () => ClientWithTotal(client: client, totalAmount: 0), // ✅ FIXED
+            () => ClientWithTotal(client: client, totalAmount: 0),
       );
 
       if (transaction != null) {

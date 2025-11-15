@@ -41,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
               return const Center(child: Text('No clients found'));
             }
 
-// Calculate grand total across all clients
+            // Calculate grand total across all clients
             double grandTotal = 0;
             for (final c in clients) {
               grandTotal += c.totalAmount; // assume totalAmount is +ve for Put, -ve for Pull
@@ -52,25 +52,6 @@ class _MainScreenState extends State<MainScreen> {
 
             return Column(
               children: [
-                // Grand total row at the top
-                Card(
-                  color: Colors.grey[200],
-                  margin: const EdgeInsets.all(12),
-                  child: ListTile(
-                    title: const Text(
-                      'Grand Total',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    trailing: Text(
-                      '${grandTotal.abs().toStringAsFixed(2)} ($grandStatus)',
-                      style: TextStyle(
-                        color: grandColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                // List of clients
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(12),
@@ -110,6 +91,23 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       );
                     },
+                  ),
+                ),
+                Card(
+                  color: Colors.grey[200],
+                  margin: const EdgeInsets.fromLTRB(12,12,82,12),
+                  child: ListTile(
+                    title: const Text(
+                      'Grand Total',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    trailing: Text(
+                      '${grandTotal.abs().toStringAsFixed(2)} ($grandStatus)',
+                      style: TextStyle(
+                        color: grandColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],

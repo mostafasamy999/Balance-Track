@@ -15,7 +15,7 @@ class ClientDao extends DatabaseAccessor<AppDatabase> with _$ClientDaoMixin {
   Stream<List<ClientTableData>> watchAllClients() => select(clientTable).watch();
 
   Future<int> insertClient({required String name,required  String category}) =>
-      into(clientTable).insert(ClientTableData( id:-1,name: name, category: category));
+      into(clientTable).insert(ClientTableCompanion(name: Value(name), category: Value(category)));
   Future<List<ClientWithTotal>> getClientsWithTotal() async {
     final query = select(clientTable).join([
       leftOuterJoin(

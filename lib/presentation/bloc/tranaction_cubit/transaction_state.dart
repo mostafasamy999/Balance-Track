@@ -10,8 +10,9 @@ final class ErrorState extends TransactionState {
 }
 final class GetDataSuccessState extends TransactionState {
   final List<ClientTransactions> transactions;
+  final double total;
 
-  GetDataSuccessState(this.transactions);
+  GetDataSuccessState(this.transactions,this.total);
 
 
 }

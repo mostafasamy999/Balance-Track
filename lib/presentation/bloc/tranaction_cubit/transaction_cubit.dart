@@ -11,11 +11,12 @@ class TransactionCubit extends Cubit<TransactionState> {
   TransactionCubit(this.transactionDao) : super(InitialState());
 
   void getTransactionList(int clientId) async {
+    print ("Fetching transactions for clientId: $clientId");
     emit(LoadingState());
     try {
-      final List<TransactionTableData> transaction =
-      await transactionDao.getAllTransactions(clientId);
-      emit(GetDataSuccessState(transaction.toUiModel()));
+      final ClientTransactionsResult transaction =
+      await transactionDao.getClientTransactionsWithTotal(clientId);
+      emit(GetDataSuccessState(transaction.transactions, transaction.total));
     } catch (e) {
       emit(ErrorState("Failed to load transactions"));
     }
@@ -24,8 +25,10 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<void> addTransaction({
     required int clientId,
     required double amount,
-    required String status,
+    required bool status,
   }) async {
+    print ("Adding transaction - clientId: $clientId, amount: $amount, status: $status");
+
     emit(LoadingState());
     try {
       await transactionDao.insertTransaction(
@@ -45,8 +48,10 @@ class TransactionCubit extends Cubit<TransactionState> {
     required int id,
     required int clientId,
     required double amount,
-    required String status,
+    required bool status,
   }) async {
+    print ("Editing transaction id: $id");
+    print ("New values - clientId: $clientId, amount: $amount, status: $status");
     emit(LoadingState());
     try {
       await transactionDao.updateTransaction(

@@ -256,12 +256,12 @@ class $TransactionTableTable extends TransactionTable
       type: DriftSqlType.double, requiredDuringInsert: true);
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+  late final GeneratedColumn<bool> status = GeneratedColumn<bool>(
       'status', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 20),
-      type: DriftSqlType.string,
-      requiredDuringInsert: true);
+      type: DriftSqlType.bool,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("status" IN (0, 1))'));
   static const VerificationMeta _datetimeMeta =
       const VerificationMeta('datetime');
   @override
@@ -325,7 +325,7 @@ class $TransactionTableTable extends TransactionTable
       amount: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}amount'])!,
       status: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+          .read(DriftSqlType.bool, data['${effectivePrefix}status'])!,
       datetime: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}datetime'])!,
     );
@@ -342,7 +342,7 @@ class TransactionTableData extends DataClass
   final int id;
   final int clientId;
   final double amount;
-  final String status;
+  final bool status;
   final DateTime datetime;
   const TransactionTableData(
       {required this.id,
@@ -356,7 +356,7 @@ class TransactionTableData extends DataClass
     map['id'] = Variable<int>(id);
     map['client_id'] = Variable<int>(clientId);
     map['amount'] = Variable<double>(amount);
-    map['status'] = Variable<String>(status);
+    map['status'] = Variable<bool>(status);
     map['datetime'] = Variable<DateTime>(datetime);
     return map;
   }
@@ -378,7 +378,7 @@ class TransactionTableData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       clientId: serializer.fromJson<int>(json['clientId']),
       amount: serializer.fromJson<double>(json['amount']),
-      status: serializer.fromJson<String>(json['status']),
+      status: serializer.fromJson<bool>(json['status']),
       datetime: serializer.fromJson<DateTime>(json['datetime']),
     );
   }
@@ -389,7 +389,7 @@ class TransactionTableData extends DataClass
       'id': serializer.toJson<int>(id),
       'clientId': serializer.toJson<int>(clientId),
       'amount': serializer.toJson<double>(amount),
-      'status': serializer.toJson<String>(status),
+      'status': serializer.toJson<bool>(status),
       'datetime': serializer.toJson<DateTime>(datetime),
     };
   }
@@ -398,7 +398,7 @@ class TransactionTableData extends DataClass
           {int? id,
           int? clientId,
           double? amount,
-          String? status,
+          bool? status,
           DateTime? datetime}) =>
       TransactionTableData(
         id: id ?? this.id,
@@ -446,7 +446,7 @@ class TransactionTableCompanion extends UpdateCompanion<TransactionTableData> {
   final Value<int> id;
   final Value<int> clientId;
   final Value<double> amount;
-  final Value<String> status;
+  final Value<bool> status;
   final Value<DateTime> datetime;
   const TransactionTableCompanion({
     this.id = const Value.absent(),
@@ -459,7 +459,7 @@ class TransactionTableCompanion extends UpdateCompanion<TransactionTableData> {
     this.id = const Value.absent(),
     required int clientId,
     required double amount,
-    required String status,
+    required bool status,
     required DateTime datetime,
   })  : clientId = Value(clientId),
         amount = Value(amount),
@@ -469,7 +469,7 @@ class TransactionTableCompanion extends UpdateCompanion<TransactionTableData> {
     Expression<int>? id,
     Expression<int>? clientId,
     Expression<double>? amount,
-    Expression<String>? status,
+    Expression<bool>? status,
     Expression<DateTime>? datetime,
   }) {
     return RawValuesInsertable({
@@ -485,7 +485,7 @@ class TransactionTableCompanion extends UpdateCompanion<TransactionTableData> {
       {Value<int>? id,
       Value<int>? clientId,
       Value<double>? amount,
-      Value<String>? status,
+      Value<bool>? status,
       Value<DateTime>? datetime}) {
     return TransactionTableCompanion(
       id: id ?? this.id,
@@ -509,7 +509,7 @@ class TransactionTableCompanion extends UpdateCompanion<TransactionTableData> {
       map['amount'] = Variable<double>(amount.value);
     }
     if (status.present) {
-      map['status'] = Variable<String>(status.value);
+      map['status'] = Variable<bool>(status.value);
     }
     if (datetime.present) {
       map['datetime'] = Variable<DateTime>(datetime.value);
@@ -536,6 +536,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ClientTableTable clientTable = $ClientTableTable(this);
   late final $TransactionTableTable transactionTable =
       $TransactionTableTable(this);
+  late final ClientDao clientDao = ClientDao(this as AppDatabase);
+  late final TransactionDao transactionDao =
+      TransactionDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -784,7 +787,7 @@ typedef $$TransactionTableTableCreateCompanionBuilder
   Value<int> id,
   required int clientId,
   required double amount,
-  required String status,
+  required bool status,
   required DateTime datetime,
 });
 typedef $$TransactionTableTableUpdateCompanionBuilder
@@ -792,7 +795,7 @@ typedef $$TransactionTableTableUpdateCompanionBuilder
   Value<int> id,
   Value<int> clientId,
   Value<double> amount,
-  Value<String> status,
+  Value<bool> status,
   Value<DateTime> datetime,
 });
 
@@ -832,7 +835,7 @@ class $$TransactionTableTableFilterComposer
   ColumnFilters<double> get amount => $composableBuilder(
       column: $table.amount, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get status => $composableBuilder(
+  ColumnFilters<bool> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get datetime => $composableBuilder(
@@ -874,7 +877,7 @@ class $$TransactionTableTableOrderingComposer
   ColumnOrderings<double> get amount => $composableBuilder(
       column: $table.amount, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get status => $composableBuilder(
+  ColumnOrderings<bool> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get datetime => $composableBuilder(
@@ -916,7 +919,7 @@ class $$TransactionTableTableAnnotationComposer
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
 
-  GeneratedColumn<String> get status =>
+  GeneratedColumn<bool> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<DateTime> get datetime =>
@@ -970,7 +973,7 @@ class $$TransactionTableTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<int> clientId = const Value.absent(),
             Value<double> amount = const Value.absent(),
-            Value<String> status = const Value.absent(),
+            Value<bool> status = const Value.absent(),
             Value<DateTime> datetime = const Value.absent(),
           }) =>
               TransactionTableCompanion(
@@ -984,7 +987,7 @@ class $$TransactionTableTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             required int clientId,
             required double amount,
-            required String status,
+            required bool status,
             required DateTime datetime,
           }) =>
               TransactionTableCompanion.insert(

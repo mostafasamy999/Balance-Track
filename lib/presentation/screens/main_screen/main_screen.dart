@@ -37,42 +37,82 @@ class _MainScreenState extends State<MainScreen> {
             if (clients.isEmpty) {
               return const Center(child: Text('No clients found'));
             }
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: clients.length,
-              itemBuilder: (context, i) {
-                final client = clients[i];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
+            if (clients.isEmpty) {
+              return const Center(child: Text('No clients found'));
+            }
+
+// Calculate grand total across all clients
+            double grandTotal = 0;
+            for (final c in clients) {
+              grandTotal += c.totalAmount; // assume totalAmount is +ve for Put, -ve for Pull
+            }
+
+            final grandStatus = grandTotal >= 0 ? 'Put (+)' : 'Pull (-)';
+            final grandColor = grandTotal >= 0 ? Colors.green : Colors.red;
+
+            return Column(
+              children: [
+                // Grand total row at the top
+                Card(
+                  color: Colors.grey[200],
+                  margin: const EdgeInsets.all(12),
                   child: ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                            create: (_) => t.TransactionCubit(injector()),
-                            child: TransactionScreen(clientId: client.client.id),
-                          ),
-                        ),
-                      ).then((value) {
-                        // Refresh the client list when returning from the transaction screen
-                        context.read<MainScreenCubit>().getClientsList();
-                      });
-
-
-                    },
-                    title: Text(client.client.name),
-                    subtitle: Text('Category: ${client.client.category}'),
+                    title: const Text(
+                      'Grand Total',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     trailing: Text(
-                      client.totalAmount.toStringAsFixed(2),
-                      style: const TextStyle(
-                        color: Colors.green,
+                      '${grandTotal.abs().toStringAsFixed(2)} ($grandStatus)',
+                      style: TextStyle(
+                        color: grandColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                );
-              },
+                ),
+                // List of clients
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: clients.length,
+                    itemBuilder: (context, i) {
+                      final client = clients[i];
+
+                      final total = client.totalAmount;
+                      final totalStatus = total >= 0 ? 'Put (+)' : 'Pull (-)';
+                      final totalColor = total >= 0 ? Colors.green : Colors.red;
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BlocProvider(
+                                  create: (_) => t.TransactionCubit(injector()),
+                                  child: TransactionScreen(clientId: client.client.id),
+                                ),
+                              ),
+                            ).then((value) {
+                              context.read<MainScreenCubit>().getClientsList();
+                            });
+                          },
+                          title: Text(client.client.name),
+                          subtitle: Text('Category: ${client.client.category}'),
+                          trailing: Text(
+                            '${total.abs().toStringAsFixed(2)} ($totalStatus)',
+                            style: TextStyle(
+                              color: totalColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           } else {
             return const Center(child: Text('No data'));
